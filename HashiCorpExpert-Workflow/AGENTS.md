@@ -17,6 +17,8 @@ This workspace contains GitHub Copilot custom agents and reusable skills for Has
 - `.github/agents/vault-pattern-selection.agent.md`: downstream Vault architect agent for target pattern decisions.
 - `.github/agents/vault-migration-plan.agent.md`: downstream planning agent for implementation-ready Vault migration plans.
 - `.github/agents/vault-implementation.agent.md`: approval-gated implementation orchestrator for approved Vault migration changes.
+- `.github/agents/vault-test-validation.agent.md`: post-implementation validation agent for affected flows, tests, and merge readiness.
+- `.github/agents/vault-security-review.agent.md`: final pre-human-approval safety review agent for Vault migration diffs.
 - `.github/skills/vault-*/SKILL.md`: independent discovery modules.
 - `.github/instructions/vault-discovery-report.instructions.md`: reporting and redaction rules.
 - `schemas/vault-discovery-report.schema.json`: standardized JSON contract.
@@ -41,6 +43,18 @@ This workspace contains GitHub Copilot custom agents and reusable skills for Has
 - Default mode is dry-run/scope review.
 - Application source, deployment, CI/CD, Terraform, and Vault configuration changes require explicit user approval.
 - Pattern-specific implementation skills own concrete change procedures. The implementation agent owns orchestration, scope control, safety, validation, and summary output.
+
+## Vault Test Validation Ownership
+
+- Inputs: discovery report, pattern decision, migration plan, implementation summary, and current git diff.
+- Outputs: `reports/vault-test-validation-report.md` and `reports/vault-test-validation-report.json`.
+- The test validation agent may run safe local tests only. It must not deploy, call production systems, expose secrets, or report tests as passed unless commands were actually executed.
+
+## Vault Security Review Ownership
+
+- Inputs: discovery report, pattern decision, migration plan, implementation summary, test validation report, and current git diff.
+- Outputs: `reports/vault-security-review.md` and `reports/vault-security-review.json`.
+- The security review agent checks whether the Vault migration is safe before human approval. It must not expose secrets, deploy, modify files, or claim approval when evidence is missing.
 
 ## Hooks And Deterministic Checks
 

@@ -10,6 +10,8 @@ It is implemented as a GitHub Copilot custom agent pack:
 - one downstream pattern selection agent
 - one downstream migration planning agent
 - one approval-gated implementation agent
+- one post-implementation test validation agent
+- one final security review agent
 - multiple reusable discovery skills
 - standardized Markdown and JSON outputs
 - safe read-only discovery rules
@@ -25,6 +27,8 @@ HashiCorpExpert-Workflow/
       vault-pattern-selection.agent.md
       vault-migration-plan.agent.md
       vault-implementation.agent.md
+      vault-test-validation.agent.md
+      vault-security-review.agent.md
     skills/
       vault-repo-fingerprint/
       vault-secret-detection/
@@ -49,6 +53,8 @@ HashiCorpExpert-Workflow/
       vault-pattern-selection.prompt.md
       vault-migration-plan.prompt.md
       vault-implementation.prompt.md
+      vault-test-validation.prompt.md
+      vault-security-review.prompt.md
     instructions/
       vault-discovery-report.instructions.md
   docs/
@@ -77,6 +83,10 @@ HashiCorpExpert-Workflow/
     vault-migration-plan.json
     vault-implementation-summary.md
     vault-implementation-summary.json
+    vault-test-validation-report.md
+    vault-test-validation-report.json
+    vault-security-review.md
+    vault-security-review.json
   reports/
 ```
 
@@ -157,6 +167,50 @@ Pattern-specific skills include:
 
 Implementation is approval-gated and must not add secret values.
 
+## Test Validation Agent
+
+The Vault Test & Validation Agent consumes:
+
+- discovery report
+- pattern decision
+- migration plan
+- implementation summary
+- current git diff
+
+It produces:
+
+- `reports/vault-test-validation-report.md`
+- `reports/vault-test-validation-report.json`
+
+This agent identifies affected runtime and business flows, recommends the minimum safe tests, runs safe local tests when available, records executed evidence, and separates not-executed and blocked tests. It must not fake test success, deploy, call production systems, or expose secret values.
+
+The agent uses focused testing skills:
+
+- Vault test impact analysis
+- Vault Agent Injector testing
+- Vault CSI testing
+- Vault SDK/API testing
+- AppRole testing
+- Kubernetes Auth testing
+- Dynamic database secret testing
+- Spring startup testing
+- CI/CD validation testing
+- Manual validation checklist generation
+- Risk validation
+
+This keeps automated testing minimal and honest while still producing the manual validation cases needed for enterprise environments.
+
+## Security Review Agent
+
+The Vault Security Review Agent consumes all prior reports and the current git diff. It produces:
+
+- `reports/vault-security-review.md`
+- `reports/vault-security-review.json`
+
+This final agent checks whether the migration is safe before human approval. It focuses on secret exposure, logging, fallback behavior, Vault auth correctness, path and policy safety, rollback safety, token/lease handling, CI/CD boundaries, and Terraform state boundaries.
+
+The security review is separate from test validation because Vault migration is primarily a security transformation, not only a code change.
+
 ## Hooks And Scripts
 
 The workflow includes deterministic checks for:
@@ -166,6 +220,7 @@ The workflow includes deterministic checks for:
 - JSON output structure
 - secret redaction
 - implementation safety boundaries
+- validation evidence and merge readiness
 
 These checks complement the agent instructions. They provide repeatable gates that can run locally or in CI.
 

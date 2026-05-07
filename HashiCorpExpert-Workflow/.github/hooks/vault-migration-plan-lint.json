@@ -1,22 +1,25 @@
 {
+  "version": 1,
   "hooks": {
-    "Stop": [
+    "sessionEnd": [
       {
         "type": "command",
-        "command": "./scripts/vault-report-lint.sh reports/vault-migration-plan.md migration",
+        "bash": "./scripts/vault-report-lint.sh reports/vault-migration-plan.md migration",
+        "powershell": "./scripts/vault-report-lint.ps1 reports/vault-migration-plan.md migration",
         "timeout": 20
       },
       {
         "type": "command",
-        "command": "./scripts/vault-json-schema-validate.sh reports/vault-migration-plan.json migration",
+        "bash": "./scripts/vault-json-schema-validate.sh reports/vault-migration-plan.json migration",
+        "powershell": "./scripts/vault-json-schema-validate.ps1 reports/vault-migration-plan.json migration",
         "timeout": 20
       },
       {
         "type": "command",
-        "command": "./scripts/vault-secret-redaction-lint.sh reports",
+        "bash": "./scripts/vault-secret-redaction-lint.sh reports",
+        "powershell": "./scripts/vault-secret-redaction-lint.ps1 reports",
         "timeout": 20
       }
     ]
   }
 }
-

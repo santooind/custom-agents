@@ -23,7 +23,15 @@ Use them to validate:
   vault-pattern-decision-lint.json
   vault-migration-plan-lint.json
   vault-implementation-safety.json
+  vault-test-validation-lint.json
+  vault-security-review-lint.json
 ```
+
+The hook descriptors use the current Copilot hook shape:
+
+- `version: 1`
+- lowercase hook triggers such as `sessionEnd`
+- separate `bash` and `powershell` command fields
 
 ## Scripts
 
@@ -78,6 +86,8 @@ PowerShell:
 | JSON validation | Required top-level JSON fields are present and JSON is parseable. |
 | Secret redaction lint | Report outputs do not contain obvious unredacted secret-like values. |
 | Implementation safety check | Implementation does not introduce common unsafe Vault or secret-handling patterns. |
+| Test validation lint | Validation report includes executed/not-executed/blocked test evidence and manual validation checklist sections. |
+| Security review lint | Security review includes safety controls, findings, open security questions, and final recommendation. |
 
 ## Notes
 
@@ -85,4 +95,3 @@ PowerShell:
 - Full JSON Schema validation can be added later if `jsonschema`, `ajv`, or a standard enterprise validator is available.
 - The implementation safety check avoids scanning agent-pack metadata while still scanning application and CI/CD files.
 - These checks do not replace security review. They catch common mistakes early.
-

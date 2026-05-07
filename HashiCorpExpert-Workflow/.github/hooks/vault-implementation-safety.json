@@ -1,22 +1,25 @@
 {
+  "version": 1,
   "hooks": {
-    "Stop": [
+    "sessionEnd": [
       {
         "type": "command",
-        "command": "./scripts/vault-implementation-safety-check.sh .",
+        "bash": "./scripts/vault-implementation-safety-check.sh .",
+        "powershell": "./scripts/vault-implementation-safety-check.ps1 .",
         "timeout": 30
       },
       {
         "type": "command",
-        "command": "./scripts/vault-report-lint.sh reports/vault-implementation-summary.md implementation",
+        "bash": "./scripts/vault-report-lint.sh reports/vault-implementation-summary.md implementation",
+        "powershell": "./scripts/vault-report-lint.ps1 reports/vault-implementation-summary.md implementation",
         "timeout": 20
       },
       {
         "type": "command",
-        "command": "./scripts/vault-json-schema-validate.sh reports/vault-implementation-summary.json implementation",
+        "bash": "./scripts/vault-json-schema-validate.sh reports/vault-implementation-summary.json implementation",
+        "powershell": "./scripts/vault-json-schema-validate.ps1 reports/vault-implementation-summary.json implementation",
         "timeout": 20
       }
     ]
   }
 }
-

@@ -1,0 +1,180 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-08T00:00:00Z",
+  "agent": {
+    "name": "Vault Security Review Agent",
+    "version": "1.0.0",
+    "mode": "read-only-security-review"
+  },
+  "inputs_reviewed": [
+    {
+      "path": "reports/vault-discovery-report.md",
+      "status": "Reviewed",
+      "notes": "Discovery findings reviewed."
+    },
+    {
+      "path": "reports/vault-pattern-decision.md",
+      "status": "Reviewed",
+      "notes": "Selected pattern reviewed."
+    },
+    {
+      "path": "reports/vault-migration-plan.md",
+      "status": "Reviewed",
+      "notes": "Migration scope and rollback reviewed."
+    },
+    {
+      "path": "reports/vault-implementation-summary.md",
+      "status": "Reviewed",
+      "notes": "Implementation scope reviewed."
+    },
+    {
+      "path": "reports/vault-test-validation-report.md",
+      "status": "Reviewed",
+      "notes": "Validation gaps reviewed."
+    }
+  ],
+  "git_diff_reviewed": {
+    "commands": ["git diff --name-status", "git diff --stat"],
+    "changed_files_count": 3,
+    "notes": "Current changed files reviewed."
+  },
+  "executive_summary": {
+    "summary": "No Critical or High findings were identified in this sample. Remaining conditions are manual confirmation of Vault path/policy approval and lower-environment runtime validation.",
+    "merge_security_decision": "Safe with conditions",
+    "final_recommendation": "Approve after conditions are met",
+    "critical_high_findings": 0
+  },
+  "diff_security_scope": [
+    {
+      "file": "deploy/app.yaml",
+      "change_type": "Modified",
+      "security_relevant": true,
+      "reason": "Vault injection/auth changes affect secret delivery.",
+      "confidence": 0.86
+    },
+    {
+      "file": "values.yaml",
+      "change_type": "Modified",
+      "security_relevant": true,
+      "reason": "Helm values can affect Vault role/path references.",
+      "confidence": 0.8
+    }
+  ],
+  "security_control_checklist": [
+    {
+      "control": "no secret values committed",
+      "status": "Passed",
+      "evidence": "Redaction/safety checks passed; sample uses placeholders.",
+      "risk": "Critical"
+    },
+    {
+      "control": "no secrets logged",
+      "status": "Needs manual confirmation",
+      "evidence": "Runtime logs require lower-env review.",
+      "risk": "High"
+    },
+    {
+      "control": "auth method correct",
+      "status": "Passed",
+      "evidence": "Kubernetes Auth matches selected Injector pattern.",
+      "risk": "Medium"
+    },
+    {
+      "control": "Terraform state boundary safe",
+      "status": "Passed",
+      "evidence": "Terraform-managed static secret payloads are rejected.",
+      "risk": "Critical"
+    }
+  ],
+  "secret_exposure_review": {
+    "status": "Passed",
+    "summary": "No secret values were included in the reviewed sample artifacts.",
+    "evidence": ["Placeholders and redacted values only."]
+  },
+  "vault_auth_review": {
+    "status": "Needs manual confirmation",
+    "summary": "Kubernetes Auth fits the selected pattern; service account and role binding require lower-environment confirmation.",
+    "evidence": ["Selected pattern uses Kubernetes Auth + Vault Agent Injector."]
+  },
+  "vault_policy_and_path_review": {
+    "status": "Needs manual confirmation",
+    "summary": "Vault paths are proposed placeholders and policy approval is pending.",
+    "evidence": ["Migration plan uses proposed KV paths."]
+  },
+  "runtime_safety_review": {
+    "status": "Needs manual confirmation",
+    "summary": "Startup, config loading, Vault auth failure, and rollback require lower-environment validation.",
+    "evidence": ["Test validation report requires manual runtime validation."]
+  },
+  "cicd_and_terraform_safety_review": {
+    "status": "Needs manual confirmation",
+    "summary": "CI/CD should use short-lived OIDC/JWT if Vault access is needed; Terraform must not manage secret payloads.",
+    "evidence": ["Workflow guidance rejects long-lived Vault tokens and Terraform-managed static secret payloads."]
+  },
+  "rollback_security_review": {
+    "status": "Passed",
+    "summary": "Rollback path exists and previous secret source is retained through rollback window.",
+    "evidence": ["Migration and implementation reports retain previous source for rollback."]
+  },
+  "findings": [
+    {
+      "severity": "Medium",
+      "finding": "Vault paths and policy are not confirmed as approved.",
+      "evidence": "Migration plan uses proposed placeholders.",
+      "required_action": "Confirm path standard and least-privilege policy before production rollout.",
+      "owner": "Vault platform owner"
+    }
+  ],
+  "open_security_questions": [
+    {
+      "question": "Are the Vault paths and policies approved?",
+      "why_it_matters": "Prevents overbroad or incorrect secret access.",
+      "suggested_owner": "Vault platform owner",
+      "required_before_merge": true
+    },
+    {
+      "question": "Has lower-env runtime log review completed?",
+      "why_it_matters": "Confirms secrets are not exposed during startup/failure.",
+      "suggested_owner": "Security owner",
+      "required_before_merge": true
+    }
+  ],
+  "merge_security_decision": {
+    "classification": "Safe with conditions",
+    "rationale": "No immediate secret exposure was identified in the sample. Merge should wait for path/policy approval and lower-environment log/runtime validation if production-bound.",
+    "conditions": [
+      "Confirm Vault path and least-privilege policy.",
+      "Complete lower-environment runtime and log validation."
+    ]
+  },
+  "human_approval_checklist": [
+    {
+      "item": "No secret values are present in diff.",
+      "required": true
+    },
+    {
+      "item": "Vault auth method is approved.",
+      "required": true
+    },
+    {
+      "item": "Rollback path is accepted.",
+      "required": true
+    }
+  ],
+  "final_recommendation": {
+    "recommendation": "Approve after conditions are met",
+    "confidence": 0.78,
+    "blockers": [
+      "Vault path/policy approval.",
+      "Lower-environment runtime/log validation."
+    ]
+  },
+  "safety": {
+    "secrets_redacted": true,
+    "secret_values_printed": false,
+    "destructive_commands_run": false,
+    "production_systems_called": false,
+    "notes": "No secret values are included in this sample review."
+  }
+}
+

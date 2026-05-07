@@ -1,12 +1,13 @@
 {
+  "version": 1,
   "hooks": {
-    "Stop": [
+    "sessionEnd": [
       {
         "type": "command",
-        "command": "./scripts/vault-agentic-artifact-check.sh .",
+        "bash": "./scripts/vault-agentic-artifact-check.sh .",
+        "powershell": "./scripts/vault-agentic-artifact-check.ps1 .",
         "timeout": 20
       }
     ]
   }
 }
-

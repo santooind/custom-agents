@@ -96,6 +96,59 @@ Output:
 
 The implementation agent is approval-gated. By default, it performs a dry-run scope review. After explicit approval, it uses pattern-specific skills such as Vault Agent Injector, CSI, Java Spring SDK, AppRole, Kubernetes Auth, Dynamic Database Secrets, KV, Helm, CI/CD, PKI, Docker Vault Agent, and Terraform Vault metadata implementation.
 
+## Vault Test & Validation Agent
+
+After implementation, run the **Vault Test & Validation Agent** to validate affected flows and collect evidence.
+
+Invoke it with:
+
+```text
+/vault-test-validation
+```
+
+Inputs:
+
+- `reports/vault-discovery-report.md`
+- `reports/vault-pattern-decision.md`
+- `reports/vault-migration-plan.md`
+- `reports/vault-implementation-summary.md`
+- current git diff
+
+Outputs:
+
+- `reports/vault-test-validation-report.md`
+- `reports/vault-test-validation-report.json`
+
+The validation agent identifies impacted files, affected runtime/business flows, minimum safe test scope, tests executed, tests not executed, blocked tests, Vault-specific checks, merge readiness, required manual validation, and risk-based recommendation. It must not fake test success or expose secrets.
+
+It uses pattern-specific testing skills for Vault Agent Injector, CSI, SDK/API, AppRole, Kubernetes Auth, dynamic database secrets, Spring startup, and CI/CD validation. It also generates a manual validation checklist because enterprise Vault migrations cannot rely on automation alone.
+
+## Vault Security Review Agent
+
+After test validation, run the **Vault Security Review Agent** as the final pre-human-approval gate.
+
+Invoke it with:
+
+```text
+/vault-security-review
+```
+
+Inputs:
+
+- `reports/vault-discovery-report.md`
+- `reports/vault-pattern-decision.md`
+- `reports/vault-migration-plan.md`
+- `reports/vault-implementation-summary.md`
+- `reports/vault-test-validation-report.md`
+- current git diff
+
+Outputs:
+
+- `reports/vault-security-review.md`
+- `reports/vault-security-review.json`
+
+The security review checks whether the Vault migration is safe before merge: no committed secret values, no secrets logged, safe auth method, least-privilege policy considered, rollback path, safe error handling, safe token/lease handling, CI/CD boundaries, and Terraform state boundaries.
+
 ## Hooks And Safety Checks
 
 This workflow also includes deterministic hooks and scripts:
@@ -105,6 +158,8 @@ This workflow also includes deterministic hooks and scripts:
 - `.github/hooks/vault-pattern-decision-lint.json`
 - `.github/hooks/vault-migration-plan-lint.json`
 - `.github/hooks/vault-implementation-safety.json`
+- `.github/hooks/vault-test-validation-lint.json`
+- `.github/hooks/vault-security-review-lint.json`
 
 Scripts are available in both Bash and PowerShell under `scripts/`.
 

@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionEnd": [
+      {
+        "type": "command",
+        "bash": "./scripts/vault-report-lint.sh reports/vault-test-validation-report.md validation",
+        "powershell": "./scripts/vault-report-lint.ps1 reports/vault-test-validation-report.md validation",
+        "timeout": 20
+      },
+      {
+        "type": "command",
+        "bash": "./scripts/vault-json-schema-validate.sh reports/vault-test-validation-report.json validation",
+        "powershell": "./scripts/vault-json-schema-validate.ps1 reports/vault-test-validation-report.json validation",
+        "timeout": 20
+      },
+      {
+        "type": "command",
+        "bash": "./scripts/vault-secret-redaction-lint.sh reports",
+        "powershell": "./scripts/vault-secret-redaction-lint.ps1 reports",
+        "timeout": 20
+      }
+    ]
+  }
+}

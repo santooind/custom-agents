@@ -1,0 +1,240 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-08T00:00:00Z",
+  "agent": {
+    "name": "Vault Test & Validation Agent",
+    "version": "1.0.0",
+    "mode": "read-only-validation"
+  },
+  "inputs_reviewed": [
+    {
+      "path": "reports/vault-discovery-report.md",
+      "status": "Reviewed",
+      "notes": "Discovery findings reviewed."
+    },
+    {
+      "path": "reports/vault-pattern-decision.md",
+      "status": "Reviewed",
+      "notes": "Selected pattern reviewed."
+    },
+    {
+      "path": "reports/vault-migration-plan.md",
+      "status": "Reviewed",
+      "notes": "Migration plan reviewed."
+    },
+    {
+      "path": "reports/vault-implementation-summary.md",
+      "status": "Reviewed",
+      "notes": "Implementation summary reviewed."
+    }
+  ],
+  "git_diff_reviewed": {
+    "commands": ["git diff --name-status", "git diff --stat"],
+    "changed_files_count": 3,
+    "notes": "Current changed files reviewed."
+  },
+  "executive_summary": {
+    "summary": "Vault migration validation reviewed deployment/config changes for a Kubernetes Auth + Vault Agent Injector + KV v2 pattern.",
+    "tests_executed_count": 2,
+    "tests_not_executed_count": 3,
+    "tests_blocked_count": 2,
+    "merge_readiness": "Ready with manual validation"
+  },
+  "impacted_files_reviewed": [
+    {
+      "file": "deploy/app.yaml",
+      "change_type": "Modified",
+      "runtime_impact": "Medium",
+      "test_need": "Kubernetes render and pod startup validation",
+      "confidence": 0.84
+    },
+    {
+      "file": "values.yaml",
+      "change_type": "Modified",
+      "runtime_impact": "Medium",
+      "test_need": "Helm template validation",
+      "confidence": 0.78
+    }
+  ],
+  "affected_flows": [
+    {
+      "flow": "application startup",
+      "why_affected": "Vault-rendered config may be required before application starts.",
+      "required_validation": "Start in lower environment with Vault injection enabled.",
+      "risk": "Medium"
+    },
+    {
+      "flow": "Vault authentication",
+      "why_affected": "Workload uses Kubernetes service account to authenticate.",
+      "required_validation": "Validate service account, namespace, Vault role, and policy.",
+      "risk": "High"
+    }
+  ],
+  "minimal_test_plan": [
+    {
+      "test": "Helm render",
+      "type": "config validation",
+      "command": "helm template .",
+      "required": true,
+      "reason": "Validate chart renders with Vault annotations."
+    },
+    {
+      "test": "Startup smoke",
+      "type": "runtime",
+      "command": "lower-environment deployment",
+      "required": true,
+      "reason": "Vault injection must be validated with real workload identity."
+    }
+  ],
+  "tests_executed": [
+    {
+      "command": "helm template .",
+      "result": "Passed",
+      "exit_code": 0,
+      "evidence": "Command exited 0; rendered manifests without syntax error.",
+      "notes": "Output reviewed without printing secret values."
+    },
+    {
+      "command": "scripts/vault-secret-redaction-lint.sh reports",
+      "result": "Passed",
+      "exit_code": 0,
+      "evidence": "Command exited 0.",
+      "notes": "Report outputs passed redaction lint."
+    }
+  ],
+  "tests_not_executed": [
+    {
+      "test": "mvn -q test",
+      "reason": "Maven project not detected in current sample.",
+      "required_before_merge": false
+    },
+    {
+      "test": "health endpoint smoke test",
+      "reason": "Requires running lower environment.",
+      "required_before_merge": true
+    }
+  ],
+  "tests_blocked": [
+    {
+      "test": "Vault Kubernetes Auth validation",
+      "blocker": "Requires lower environment Vault and Kubernetes namespace.",
+      "required_owner": "Platform team"
+    },
+    {
+      "test": "rollback validation",
+      "blocker": "Requires lower environment deployment rights and previous secret source.",
+      "required_owner": "Release owner"
+    }
+  ],
+  "build_validation": [
+    {
+      "tool": "Helm",
+      "detected": true,
+      "command": "helm template .",
+      "status": "Run",
+      "notes": "Render succeeded in sample."
+    },
+    {
+      "tool": "Maven",
+      "detected": false,
+      "command": "mvn -q test",
+      "status": "Not detected",
+      "notes": "No Maven files in sample context."
+    }
+  ],
+  "vault_specific_validation": [
+    {
+      "check": "Vault path referenced but no values printed",
+      "status": "Passed",
+      "evidence": "Placeholders only.",
+      "notes": "No secret values included."
+    },
+    {
+      "check": "Auth method config present",
+      "status": "Passed",
+      "evidence": "Kubernetes Auth referenced.",
+      "notes": "Service account requires environment validation."
+    }
+  ],
+  "missing_test_coverage": [
+    {
+      "area": "lower-environment startup",
+      "why_it_matters": "Vault auth and injection require real runtime context.",
+      "recommended_test": "Deploy to lower env and verify readiness/liveness."
+    }
+  ],
+  "manual_validation_checklist": [
+    {
+      "group": "Startup Validation",
+      "items": [
+        {
+          "item": "Application starts successfully.",
+          "required": true
+        },
+        {
+          "item": "No Vault auth exceptions.",
+          "required": true
+        },
+        {
+          "item": "No datasource initialization failure.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "group": "Runtime Validation",
+      "items": [
+        {
+          "item": "API login or primary business flow works.",
+          "required": true
+        },
+        {
+          "item": "DB operations work.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "group": "Rollback Validation",
+      "items": [
+        {
+          "item": "Previous config can restore service.",
+          "required": true
+        },
+        {
+          "item": "Rollback smoke test passes.",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "merge_readiness": {
+    "classification": "Ready with manual validation",
+    "rationale": "Local/static checks are sufficient for PR review, but runtime Vault Auth, startup, smoke, and rollback must be validated in a lower environment before production promotion.",
+    "required_before_merge": [
+      "Lower-environment smoke test",
+      "Vault Auth role/service account validation",
+      "Rollback validation"
+    ]
+  },
+  "required_manual_validation": [
+    {
+      "validation": "Vault Auth startup",
+      "environment": "Lower environment",
+      "owner": "Platform team",
+      "success_criteria": "Pod starts and authenticates without secret exposure."
+    }
+  ],
+  "risk_based_recommendation": {
+    "recommendation": "Merge after manual smoke test",
+    "rationale": "Changes are mostly deployment/config oriented, but workload identity and runtime startup cannot be fully proven locally.",
+    "confidence": 0.76
+  },
+  "safety": {
+    "secrets_redacted": true,
+    "secret_values_printed": false,
+    "destructive_commands_run": false,
+    "production_systems_called": false,
+    "notes": "No secret values are included in this sample report."
+  }
+}

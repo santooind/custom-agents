@@ -1,17 +1,19 @@
 {
+  "version": 1,
   "hooks": {
-    "Stop": [
+    "sessionEnd": [
       {
         "type": "command",
-        "command": "./scripts/vault-report-lint.sh reports/vault-pattern-decision.md pattern",
+        "bash": "./scripts/vault-report-lint.sh reports/vault-pattern-decision.md pattern",
+        "powershell": "./scripts/vault-report-lint.ps1 reports/vault-pattern-decision.md pattern",
         "timeout": 20
       },
       {
         "type": "command",
-        "command": "./scripts/vault-secret-redaction-lint.sh reports",
+        "bash": "./scripts/vault-secret-redaction-lint.sh reports",
+        "powershell": "./scripts/vault-secret-redaction-lint.ps1 reports",
         "timeout": 20
       }
     ]
   }
 }
-

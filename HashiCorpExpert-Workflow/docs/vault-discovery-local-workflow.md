@@ -68,6 +68,34 @@ The implementation agent consumes all prior reports and creates:
 
 It defaults to dry-run. It may edit application files only after explicit implementation approval.
 
+After implementation, run validation:
+
+```text
+/vault-test-validation
+```
+
+The validation agent consumes prior reports plus the current git diff and creates:
+
+- `reports/vault-test-validation-report.md`
+- `reports/vault-test-validation-report.json`
+
+It separates tests actually executed from tests not executed and tests blocked by missing environment/config.
+
+It also generates a manual validation checklist for startup, runtime, Kubernetes, security, and rollback validation.
+
+After validation, run security review:
+
+```text
+/vault-security-review
+```
+
+The security review agent consumes all prior reports plus the current git diff and creates:
+
+- `reports/vault-security-review.md`
+- `reports/vault-security-review.json`
+
+It answers whether the migration is safe before human approval.
+
 ## Safe Discovery Rules
 
 - Discovery is read-only.
@@ -86,6 +114,8 @@ It defaults to dry-run. It may edit application files only after explicit implem
 6. Pattern Selection Agent records rank 1 and rank 2 target patterns in `reports/vault-pattern-decision.md`.
 7. Migration Plan Agent creates implementation sequence, secret mapping, tests, rollback, cutover, risks, and readiness in `reports/vault-migration-plan.*`.
 8. Implementation Agent performs dry-run scope review or, after explicit approval, applies scoped changes using pattern-specific skills.
+9. Test & Validation Agent inspects the current diff, maps impacted flows, runs safe available tests, and records merge readiness in `reports/vault-test-validation-report.*`.
+10. Security Review Agent inspects the current diff and prior artifacts, then records merge safety and human approval requirements in `reports/vault-security-review.*`.
 
 ## Optional External API Submission
 

@@ -71,6 +71,41 @@ required_sections() {
         "## Rollback Notes" \
         "## Next Steps"
       ;;
+    validation)
+      printf '%s\n' \
+        "## 1. Executive Summary" \
+        "## 2. Inputs Reviewed" \
+        "## 3. Impacted Files Reviewed" \
+        "## 4. Affected Flows" \
+        "## 5. Minimal Test Plan" \
+        "## 6. Tests Executed" \
+        "## 7. Tests Not Executed" \
+        "## 8. Tests Blocked" \
+        "## 9. Build Validation" \
+        "## 10. Vault-Specific Validation" \
+        "## 12. Merge Readiness" \
+        "## 13. Manual Validation Checklist" \
+        "## 14. Required Manual Validation" \
+        "## 15. Risk-Based Recommendation"
+      ;;
+    security)
+      printf '%s\n' \
+        "## 1. Executive Summary" \
+        "## 2. Inputs Reviewed" \
+        "## 3. Diff Security Scope" \
+        "## 4. Security Control Checklist" \
+        "## 5. Secret Exposure Review" \
+        "## 6. Vault Auth Review" \
+        "## 7. Vault Policy And Path Review" \
+        "## 8. Runtime Safety Review" \
+        "## 9. CI/CD And Terraform Safety Review" \
+        "## 10. Rollback Security Review" \
+        "## 11. Findings" \
+        "## 12. Open Security Questions" \
+        "## 13. Merge Security Decision" \
+        "## 14. Human Approval Checklist" \
+        "## 15. Final Recommendation"
+      ;;
     *)
       printf '%s\n' "## Executive Summary"
       ;;
@@ -91,4 +126,3 @@ if [ "$missing" -ne 0 ]; then
 fi
 
 echo "Report lint passed: $REPORT"
-
