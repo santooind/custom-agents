@@ -1,0 +1,382 @@
+{
+  "schema_version": "1.1.0",
+  "generated_at": "2026-05-07T00:00:00Z",
+  "agent": {
+    "name": "Vault Discovery Agent",
+    "version": "1.0.0",
+    "mode": "read-only-discovery"
+  },
+  "application": {
+    "name": "Sample Application",
+    "business_unit": "Unknown",
+    "owner": "Unknown",
+    "criticality": "Unknown"
+  },
+  "repository": {
+    "path": "/path/to/sample-application",
+    "repository_type": "Application repository",
+    "monorepo": false,
+    "partial_repository": false,
+    "files_scanned": 128,
+    "assumptions": [
+      "Deployment model inferred from repository manifests and requires owner confirmation."
+    ]
+  },
+  "technology_stack": {
+    "languages": ["Java", "YAML"],
+    "frameworks": ["Spring Boot", "Hibernate"],
+    "runtime": ["JVM"],
+    "build_tools": ["Maven"],
+    "package_managers": ["Maven"]
+  },
+  "deployment_model": {
+    "models": ["Kubernetes", "Docker"],
+    "platforms": ["Unknown Kubernetes distribution"],
+    "infrastructure_models": ["CI/CD pipeline"],
+    "confidence": 0.82
+  },
+  "secret_inventory": [
+    {
+      "id": "secret-001",
+      "type": "database credential",
+      "location_type": "application config",
+      "source": "src/main/resources/application.yml",
+      "sensitivity": "High",
+      "value_redacted": true,
+      "rotation_candidate": true,
+      "vault_mapping_candidate": "dynamic database secrets or kv-v2"
+    }
+  ],
+  "current_secret_handling": [
+    "Spring configuration references secret-like keys.",
+    "Kubernetes manifests reference Secret objects.",
+    "CI/CD appears to inject platform secrets."
+  ],
+  "risk_findings": [
+    {
+      "id": "config-file-secret-key",
+      "title": "Secret-like keys in application configuration",
+      "category": "secret-handling",
+      "severity": "High",
+      "confidence": 0.8,
+      "description": "Application configuration contains secret-like keys. Values are redacted.",
+      "migration_impact": "Move values to Vault-backed runtime injection or approved secret sync.",
+      "recommended_action": "Map each key to Vault path and confirm runtime loading behavior.",
+      "impact_entry_ids": ["impact-001"],
+      "evidence_ids": ["ev-001"]
+    }
+  ],
+  "code_change_impact_matrix": [
+    {
+      "id": "impact-001",
+      "area": "config-only",
+      "file_path": "src/main/resources/application.yml",
+      "component_or_module": "Spring application configuration",
+      "location_confidence": "Exact",
+      "secret_usage_purpose": "Database credential configuration",
+      "current_pattern": "Secret-like key in Spring YAML configuration",
+      "current_retrieval_mechanism": "Spring property binding at application startup",
+      "recommended_change": "Preserve the existing property key and source the value from a Vault Agent rendered file or injected template.",
+      "replacement_approach": "Vault Agent Injector template with Kubernetes Auth",
+      "modification_complexity": "Medium",
+      "runtime_impact_risk": "Medium",
+      "testing_impact": "Validate application startup, config binding, and rollback to previous secret source.",
+      "backward_compatibility_concern": "Existing property names should be preserved to avoid application code changes.",
+      "confidence": 0.85,
+      "source_finding_ids": ["config-file-secret-key"],
+      "evidence_ids": ["ev-001"],
+      "assumptions": []
+    },
+    {
+      "id": "impact-002",
+      "area": "infrastructure",
+      "file_path": "deploy/app.yaml",
+      "component_or_module": "Kubernetes Deployment",
+      "location_confidence": "Exact",
+      "secret_usage_purpose": "Application runtime secret injection",
+      "current_pattern": "Kubernetes Secret reference through environment variable",
+      "current_retrieval_mechanism": "secretKeyRef",
+      "recommended_change": "Replace or supplement Kubernetes Secret reference with Vault Agent Injector template or CSI mount.",
+      "replacement_approach": "Kubernetes Auth with Vault Agent Injector",
+      "modification_complexity": "Medium",
+      "runtime_impact_risk": "Medium",
+      "testing_impact": "Validate pod startup, service account auth, injected file permissions, and rollback manifest.",
+      "backward_compatibility_concern": "Container environment variable names may need to remain stable during phased rollout.",
+      "confidence": 0.82,
+      "source_finding_ids": ["kubernetes-secret-reference"],
+      "evidence_ids": ["ev-002"],
+      "assumptions": []
+    },
+    {
+      "id": "impact-003",
+      "area": "database",
+      "file_path": "probable: datasource configuration class or Spring datasource properties",
+      "component_or_module": "Datasource initialization",
+      "location_confidence": "Probable",
+      "secret_usage_purpose": "Database connection credentials",
+      "current_pattern": "Startup datasource pool initialization",
+      "current_retrieval_mechanism": "Spring datasource properties",
+      "recommended_change": "Test Vault dynamic database credentials and define pool eviction or restart behavior for rotation.",
+      "replacement_approach": "Dynamic database secrets where operationally approved; KV v2 interim fallback",
+      "modification_complexity": "High",
+      "runtime_impact_risk": "High",
+      "testing_impact": "Run credential rotation tests under active traffic and verify reconnect behavior.",
+      "backward_compatibility_concern": "Existing pool lifecycle may not tolerate credential changes without restart.",
+      "confidence": 0.68,
+      "source_finding_ids": ["startup-only-config"],
+      "evidence_ids": [],
+      "assumptions": ["Datasource implementation file was not directly identified in the sample evidence."]
+    },
+    {
+      "id": "impact-004",
+      "area": "cicd",
+      "file_path": ".github/workflows/*",
+      "component_or_module": "Deployment workflow",
+      "location_confidence": "Probable",
+      "secret_usage_purpose": "Deployment-time secret flow",
+      "current_pattern": "Platform secret references likely used during deployment",
+      "current_retrieval_mechanism": "GitHub Actions secrets context",
+      "recommended_change": "Use OIDC/JWT authentication to Vault and avoid long-lived Vault tokens in repository or organization secrets.",
+      "replacement_approach": "OIDC/JWT auth for CI/CD",
+      "modification_complexity": "Medium",
+      "runtime_impact_risk": "Medium",
+      "testing_impact": "Validate pipeline auth, least-privilege Vault policy, and masked logs.",
+      "backward_compatibility_concern": "Existing secret names may be referenced by deployment scripts.",
+      "confidence": 0.6,
+      "source_finding_ids": ["cicd-secret-flow"],
+      "evidence_ids": [],
+      "assumptions": ["CI/CD workflow files are represented as a probable location in this sample."]
+    }
+  ],
+  "impact_summary": {
+    "likely_files_impacted": "3-6",
+    "likely_services_or_modules_impacted": "1",
+    "startup_runtime_impact_likelihood": "Medium",
+    "refactoring_likelihood": "Medium",
+    "backward_compatibility_concerns": [
+      "Existing property and environment variable names should remain stable during migration.",
+      "Datasource credential rotation may require restart or pool refresh.",
+      "Rollback must preserve the prior Kubernetes Secret source until cutover is complete."
+    ]
+  },
+  "migration_inventory": {
+    "config_only_changes": [
+      {
+        "id": "impact-001",
+        "area": "config-only",
+        "file_path": "src/main/resources/application.yml",
+        "component_or_module": "Spring application configuration",
+        "location_confidence": "Exact",
+        "secret_usage_purpose": "Database credential configuration",
+        "current_pattern": "Secret-like key in Spring YAML configuration",
+        "current_retrieval_mechanism": "Spring property binding at application startup",
+        "recommended_change": "Preserve the existing property key and source the value from a Vault Agent rendered file or injected template.",
+        "replacement_approach": "Vault Agent Injector template with Kubernetes Auth",
+        "modification_complexity": "Medium",
+        "runtime_impact_risk": "Medium",
+        "testing_impact": "Validate application startup, config binding, and rollback to previous secret source.",
+        "backward_compatibility_concern": "Existing property names should be preserved to avoid application code changes.",
+        "confidence": 0.85,
+        "source_finding_ids": ["config-file-secret-key"],
+        "evidence_ids": ["ev-001"],
+        "assumptions": []
+      }
+    ],
+    "code_level_changes": [
+      {
+        "id": "impact-003",
+        "area": "database",
+        "file_path": "probable: datasource configuration class or Spring datasource properties",
+        "component_or_module": "Datasource initialization",
+        "location_confidence": "Probable",
+        "secret_usage_purpose": "Database connection credentials",
+        "current_pattern": "Startup datasource pool initialization",
+        "current_retrieval_mechanism": "Spring datasource properties",
+        "recommended_change": "Test Vault dynamic database credentials and define pool eviction or restart behavior for rotation.",
+        "replacement_approach": "Dynamic database secrets where operationally approved; KV v2 interim fallback",
+        "modification_complexity": "High",
+        "runtime_impact_risk": "High",
+        "testing_impact": "Run credential rotation tests under active traffic and verify reconnect behavior.",
+        "backward_compatibility_concern": "Existing pool lifecycle may not tolerate credential changes without restart.",
+        "confidence": 0.68,
+        "source_finding_ids": ["startup-only-config"],
+        "evidence_ids": [],
+        "assumptions": ["Datasource implementation file was not directly identified in the sample evidence."]
+      }
+    ],
+    "infrastructure_changes": [
+      {
+        "id": "impact-002",
+        "area": "infrastructure",
+        "file_path": "deploy/app.yaml",
+        "component_or_module": "Kubernetes Deployment",
+        "location_confidence": "Exact",
+        "secret_usage_purpose": "Application runtime secret injection",
+        "current_pattern": "Kubernetes Secret reference through environment variable",
+        "current_retrieval_mechanism": "secretKeyRef",
+        "recommended_change": "Replace or supplement Kubernetes Secret reference with Vault Agent Injector template or CSI mount.",
+        "replacement_approach": "Kubernetes Auth with Vault Agent Injector",
+        "modification_complexity": "Medium",
+        "runtime_impact_risk": "Medium",
+        "testing_impact": "Validate pod startup, service account auth, injected file permissions, and rollback manifest.",
+        "backward_compatibility_concern": "Container environment variable names may need to remain stable during phased rollout.",
+        "confidence": 0.82,
+        "source_finding_ids": ["kubernetes-secret-reference"],
+        "evidence_ids": ["ev-002"],
+        "assumptions": []
+      }
+    ],
+    "cicd_changes": [
+      {
+        "id": "impact-004",
+        "area": "cicd",
+        "file_path": ".github/workflows/*",
+        "component_or_module": "Deployment workflow",
+        "location_confidence": "Probable",
+        "secret_usage_purpose": "Deployment-time secret flow",
+        "current_pattern": "Platform secret references likely used during deployment",
+        "current_retrieval_mechanism": "GitHub Actions secrets context",
+        "recommended_change": "Use OIDC/JWT authentication to Vault and avoid long-lived Vault tokens in repository or organization secrets.",
+        "replacement_approach": "OIDC/JWT auth for CI/CD",
+        "modification_complexity": "Medium",
+        "runtime_impact_risk": "Medium",
+        "testing_impact": "Validate pipeline auth, least-privilege Vault policy, and masked logs.",
+        "backward_compatibility_concern": "Existing secret names may be referenced by deployment scripts.",
+        "confidence": 0.6,
+        "source_finding_ids": ["cicd-secret-flow"],
+        "evidence_ids": [],
+        "assumptions": ["CI/CD workflow files are represented as a probable location in this sample."]
+      }
+    ],
+    "deployment_pipeline_changes": []
+  },
+  "recommended_vault_pattern": {
+    "primary_pattern": "Kubernetes Auth with Vault Agent Injector",
+    "supporting_patterns": ["Dynamic secrets", "Static KV", "OIDC/JWT for CI/CD"],
+    "rationale": [
+      "Kubernetes manifests were detected.",
+      "Existing configuration can likely be supplied through injected files or templates.",
+      "This minimizes application code changes compared with SDK integration."
+    ],
+    "rejected_patterns": [
+      {
+        "pattern": "SDK integration",
+        "reason": "Requires application code changes and lease handling not justified by current evidence."
+      }
+    ]
+  },
+  "required_code_changes": [
+    "Likely minimal if existing config keys can be populated by Vault Agent templates."
+  ],
+  "required_infrastructure_changes": [
+    "Configure Vault Kubernetes Auth role and policies.",
+    "Add injector annotations or Helm chart values."
+  ],
+  "cicd_impact": [
+    "Use OIDC/JWT for CI/CD access to Vault where possible."
+  ],
+  "operational_risks": [
+    {
+      "id": "startup-only-config",
+      "title": "Startup-only configuration loading may require restart on rotation",
+      "category": "operational-risk",
+      "severity": "Medium",
+      "confidence": 0.65,
+      "description": "Framework configuration appears startup-loaded and may not refresh secrets at runtime.",
+      "migration_impact": "Rotation may require restart or pool refresh.",
+      "recommended_action": "Test restart and rotation behavior before production rollout.",
+      "evidence_ids": []
+    }
+  ],
+  "effort_estimation": {
+    "development_effort": "Medium",
+    "testing_effort": "Medium",
+    "deployment_complexity": "Medium",
+    "rollback_complexity": "Medium",
+    "runtime_risk": "Medium",
+    "secret_rotation_complexity": "High",
+    "rationale": [
+      "Kubernetes manifests and Spring configuration require coordinated changes.",
+      "Database credential rotation depends on pooling behavior."
+    ]
+  },
+  "suggested_migration_sequence": [
+    {
+      "step": 1,
+      "scope": "Config-only Vault-rendered property compatibility",
+      "rationale": "Preserve existing application keys before changing runtime-sensitive dependencies.",
+      "dependencies": ["Vault path design", "Non-production Vault namespace"],
+      "confidence": 0.82
+    },
+    {
+      "step": 2,
+      "scope": "Low-risk static secret migration",
+      "rationale": "Move static API keys before datasource or certificate flows.",
+      "dependencies": ["KV v2 mount", "Application rollback source"],
+      "confidence": 0.74
+    },
+    {
+      "step": 3,
+      "scope": "CI/CD OIDC/JWT Vault authentication",
+      "rationale": "Remove long-lived deployment secrets from pipeline secret stores.",
+      "dependencies": ["Vault JWT auth role", "Pipeline permission review"],
+      "confidence": 0.66
+    },
+    {
+      "step": 4,
+      "scope": "Runtime-sensitive datasource migration",
+      "rationale": "Datasource rotation has higher runtime risk and should follow lower-risk validation.",
+      "dependencies": ["Connection pool rotation test", "Rollback runbook"],
+      "confidence": 0.68
+    }
+  ],
+  "potential_breaking_areas": [
+    {
+      "area": "Startup bean initialization",
+      "description": "Application startup may fail if Vault-rendered config is unavailable or late.",
+      "severity": "Medium",
+      "likelihood": "Medium",
+      "confidence": 0.72,
+      "test_recommendation": "Start the application with missing, delayed, invalid, and valid Vault-rendered config.",
+      "related_impact_entry_ids": ["impact-001"]
+    },
+    {
+      "area": "Connection pool startup",
+      "description": "Datasource pool may not tolerate credential rotation without restart or eviction.",
+      "severity": "High",
+      "likelihood": "High",
+      "confidence": 0.68,
+      "test_recommendation": "Rotate credentials under active traffic and verify reconnect behavior.",
+      "related_impact_entry_ids": ["impact-003"]
+    },
+    {
+      "area": "Kubernetes auth failures",
+      "description": "Service account, namespace, audience, or Vault role mismatch can block pod startup.",
+      "severity": "High",
+      "likelihood": "Medium",
+      "confidence": 0.76,
+      "test_recommendation": "Validate Kubernetes Auth role binding and pod startup in a non-production namespace.",
+      "related_impact_entry_ids": ["impact-002"]
+    }
+  ],
+  "open_questions": [
+    "Confirm Kubernetes namespace and service account.",
+    "Confirm whether dynamic database credentials are acceptable."
+  ],
+  "migration_complexity_score": {
+    "score": 54,
+    "category": "Medium"
+  },
+  "evidence": [
+    {
+      "id": "ev-001",
+      "finding_id": "config-file-secret-key",
+      "file": "src/main/resources/application.yml",
+      "line": 12,
+      "evidence_type": "config",
+      "excerpt": "password: [REDACTED]",
+      "redacted": true,
+      "confidence": 0.8
+    }
+  ]
+}

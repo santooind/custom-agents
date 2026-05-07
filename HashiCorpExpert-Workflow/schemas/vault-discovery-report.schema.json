@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hashicorp-expert.local/schemas/vault-discovery-report.schema.json",
+  "title": "Vault Discovery Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "application",
+    "repository",
+    "technology_stack",
+    "deployment_model",
+    "secret_inventory",
+    "risk_findings",
+    "code_change_impact_matrix",
+    "impact_summary",
+    "migration_inventory",
+    "recommended_vault_pattern",
+    "effort_estimation",
+    "suggested_migration_sequence",
+    "potential_breaking_areas",
+    "migration_complexity_score",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "agent": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "mode": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "application": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "business_unit": { "type": "string" },
+        "owner": { "type": "string" },
+        "criticality": { "type": "string", "enum": ["Unknown", "Low", "Medium", "High", "Critical"] }
+      },
+      "additionalProperties": false
+    },
+    "repository": {
+      "type": "object",
+      "required": ["path", "repository_type"],
+      "properties": {
+        "path": { "type": "string" },
+        "repository_type": { "type": "string" },
+        "monorepo": { "type": "boolean" },
+        "partial_repository": { "type": "boolean" },
+        "files_scanned": { "type": "integer", "minimum": 0 },
+        "assumptions": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "technology_stack": {
+      "type": "object",
+      "properties": {
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "frameworks": { "type": "array", "items": { "type": "string" } },
+        "runtime": { "type": "array", "items": { "type": "string" } },
+        "build_tools": { "type": "array", "items": { "type": "string" } },
+        "package_managers": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "deployment_model": {
+      "type": "object",
+      "properties": {
+        "models": { "type": "array", "items": { "type": "string" } },
+        "platforms": { "type": "array", "items": { "type": "string" } },
+        "infrastructure_models": { "type": "array", "items": { "type": "string" } },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "secret_inventory": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "location_type", "sensitivity", "value_redacted"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "location_type": { "type": "string" },
+          "source": { "type": "string" },
+          "sensitivity": { "type": "string", "enum": ["Unknown", "Low", "Medium", "High", "Critical"] },
+          "value_redacted": { "type": "boolean", "const": true },
+          "rotation_candidate": { "type": "boolean" },
+          "vault_mapping_candidate": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "current_secret_handling": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "risk_findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "code_change_impact_matrix": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/code_change_impact" }
+    },
+    "impact_summary": { "$ref": "#/$defs/impact_summary" },
+    "migration_inventory": {
+      "type": "object",
+      "properties": {
+        "config_only_changes": { "type": "array", "items": { "$ref": "#/$defs/code_change_impact" } },
+        "code_level_changes": { "type": "array", "items": { "$ref": "#/$defs/code_change_impact" } },
+        "infrastructure_changes": { "type": "array", "items": { "$ref": "#/$defs/code_change_impact" } },
+        "cicd_changes": { "type": "array", "items": { "$ref": "#/$defs/code_change_impact" } },
+        "deployment_pipeline_changes": { "type": "array", "items": { "$ref": "#/$defs/code_change_impact" } }
+      },
+      "additionalProperties": false
+    },
+    "recommended_vault_pattern": {
+      "type": "object",
+      "required": ["primary_pattern", "rationale"],
+      "properties": {
+        "primary_pattern": { "type": "string" },
+        "supporting_patterns": { "type": "array", "items": { "type": "string" } },
+        "rationale": { "type": "array", "items": { "type": "string" } },
+        "rejected_patterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["pattern", "reason"],
+            "properties": {
+              "pattern": { "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "required_code_changes": { "type": "array", "items": { "type": "string" } },
+    "required_infrastructure_changes": { "type": "array", "items": { "type": "string" } },
+    "cicd_impact": { "type": "array", "items": { "type": "string" } },
+    "operational_risks": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+    "effort_estimation": {
+      "type": "object",
+      "required": [
+        "development_effort",
+        "testing_effort",
+        "deployment_complexity",
+        "rollback_complexity",
+        "runtime_risk",
+        "secret_rotation_complexity"
+      ],
+      "properties": {
+        "development_effort": { "$ref": "#/$defs/complexity" },
+        "testing_effort": { "$ref": "#/$defs/complexity" },
+        "deployment_complexity": { "$ref": "#/$defs/complexity" },
+        "rollback_complexity": { "$ref": "#/$defs/complexity" },
+        "runtime_risk": { "$ref": "#/$defs/complexity" },
+        "secret_rotation_complexity": { "$ref": "#/$defs/complexity" },
+        "rationale": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "suggested_migration_sequence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/migration_sequence_item" }
+    },
+    "potential_breaking_areas": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/breaking_area" }
+    },
+    "open_questions": { "type": "array", "items": { "type": "string" } },
+    "migration_complexity_score": {
+      "type": "object",
+      "required": ["score", "category"],
+      "properties": {
+        "score": { "type": "integer", "minimum": 1, "maximum": 100 },
+        "category": { "$ref": "#/$defs/complexity" }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence" }
+    }
+  },
+  "$defs": {
+    "complexity": {
+      "type": "string",
+      "enum": ["Low", "Medium", "High", "Critical"]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["Info", "Low", "Medium", "High", "Critical"]
+    },
+    "finding": {
+      "type": "object",
+      "required": ["id", "title", "category", "severity", "confidence", "description"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "severity": { "$ref": "#/$defs/severity" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "description": { "type": "string" },
+        "migration_impact": { "type": "string" },
+        "recommended_action": { "type": "string" },
+        "impact_entry_ids": { "type": "array", "items": { "type": "string" } },
+        "evidence_ids": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "location_confidence": {
+      "type": "string",
+      "enum": ["Exact", "Probable", "Assumed"]
+    },
+    "code_change_impact": {
+      "type": "object",
+      "required": [
+        "id",
+        "area",
+        "file_path",
+        "component_or_module",
+        "location_confidence",
+        "secret_usage_purpose",
+        "current_pattern",
+        "current_retrieval_mechanism",
+        "recommended_change",
+        "replacement_approach",
+        "modification_complexity",
+        "runtime_impact_risk",
+        "testing_impact",
+        "confidence",
+        "source_finding_ids"
+      ],
+      "properties": {
+        "id": { "type": "string" },
+        "area": {
+          "type": "string",
+          "enum": [
+            "config-only",
+            "code-level",
+            "infrastructure",
+            "cicd",
+            "deployment-pipeline",
+            "certificate",
+            "database",
+            "runtime"
+          ]
+        },
+        "file_path": { "type": "string" },
+        "component_or_module": { "type": "string" },
+        "location_confidence": { "$ref": "#/$defs/location_confidence" },
+        "secret_usage_purpose": { "type": "string" },
+        "current_pattern": { "type": "string" },
+        "current_retrieval_mechanism": { "type": "string" },
+        "recommended_change": { "type": "string" },
+        "replacement_approach": { "type": "string" },
+        "modification_complexity": { "$ref": "#/$defs/complexity" },
+        "runtime_impact_risk": { "$ref": "#/$defs/complexity" },
+        "testing_impact": { "type": "string" },
+        "backward_compatibility_concern": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "source_finding_ids": { "type": "array", "items": { "type": "string" } },
+        "evidence_ids": { "type": "array", "items": { "type": "string" } },
+        "assumptions": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "impact_summary": {
+      "type": "object",
+      "required": [
+        "likely_files_impacted",
+        "likely_services_or_modules_impacted",
+        "startup_runtime_impact_likelihood",
+        "refactoring_likelihood",
+        "backward_compatibility_concerns"
+      ],
+      "properties": {
+        "likely_files_impacted": { "type": "string" },
+        "likely_services_or_modules_impacted": { "type": "string" },
+        "startup_runtime_impact_likelihood": { "$ref": "#/$defs/complexity" },
+        "refactoring_likelihood": { "$ref": "#/$defs/complexity" },
+        "backward_compatibility_concerns": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "migration_sequence_item": {
+      "type": "object",
+      "required": ["step", "scope", "rationale", "dependencies", "confidence"],
+      "properties": {
+        "step": { "type": "integer", "minimum": 1 },
+        "scope": { "type": "string" },
+        "rationale": { "type": "string" },
+        "dependencies": { "type": "array", "items": { "type": "string" } },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "breaking_area": {
+      "type": "object",
+      "required": ["area", "description", "severity", "likelihood", "confidence", "test_recommendation"],
+      "properties": {
+        "area": { "type": "string" },
+        "description": { "type": "string" },
+        "severity": { "$ref": "#/$defs/severity" },
+        "likelihood": { "$ref": "#/$defs/complexity" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "test_recommendation": { "type": "string" },
+        "related_impact_entry_ids": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["id", "finding_id", "file", "evidence_type", "excerpt", "redacted", "confidence"],
+      "properties": {
+        "id": { "type": "string" },
+        "finding_id": { "type": "string" },
+        "file": { "type": "string" },
+        "line": { "type": ["integer", "null"], "minimum": 1 },
+        "evidence_type": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "redacted": { "type": "boolean", "const": true },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
