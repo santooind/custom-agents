@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "./scripts/vault-report-lint.sh reports/vault-pattern-decision.md pattern",
+        "timeout": 20
+      },
+      {
+        "type": "command",
+        "command": "./scripts/vault-secret-redaction-lint.sh reports",
+        "timeout": 20
+      }
+    ]
+  }
+}
+

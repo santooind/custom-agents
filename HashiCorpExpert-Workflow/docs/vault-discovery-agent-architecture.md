@@ -7,6 +7,9 @@ The Vault Discovery Agent analyzes application repositories and generates standa
 It is implemented as a GitHub Copilot custom agent pack:
 
 - one primary orchestration agent
+- one downstream pattern selection agent
+- one downstream migration planning agent
+- one approval-gated implementation agent
 - multiple reusable discovery skills
 - standardized Markdown and JSON outputs
 - safe read-only discovery rules
@@ -19,6 +22,9 @@ HashiCorpExpert-Workflow/
   .github/
     agents/
       vault-discovery-agent.agent.md
+      vault-pattern-selection.agent.md
+      vault-migration-plan.agent.md
+      vault-implementation.agent.md
     skills/
       vault-repo-fingerprint/
       vault-secret-detection/
@@ -40,17 +46,37 @@ HashiCorpExpert-Workflow/
       vault-report-generation/
     prompts/
       vault-discovery-agent.prompt.md
+      vault-pattern-selection.prompt.md
+      vault-migration-plan.prompt.md
+      vault-implementation.prompt.md
     instructions/
       vault-discovery-report.instructions.md
   docs/
     vault-discovery-agent-architecture.md
     vault-discovery-local-workflow.md
+    vault-hooks-and-safety.md
     vault-discovery-roadmap.md
+  scripts/
+    vault-agentic-artifact-check.sh
+    vault-agentic-artifact-check.ps1
+    vault-report-lint.sh
+    vault-report-lint.ps1
+    vault-json-schema-validate.sh
+    vault-json-schema-validate.ps1
+    vault-secret-redaction-lint.sh
+    vault-secret-redaction-lint.ps1
+    vault-implementation-safety-check.sh
+    vault-implementation-safety-check.ps1
   schemas/
     vault-discovery-report.schema.json
   examples/
     vault-discovery-report.md
     vault-discovery-report.json
+    vault-pattern-decision.md
+    vault-migration-plan.md
+    vault-migration-plan.json
+    vault-implementation-summary.md
+    vault-implementation-summary.json
   reports/
 ```
 
@@ -71,6 +97,77 @@ Responsibilities:
 9. Optionally prepare metadata-only external submission.
 
 The orchestrator does not implement application changes.
+
+## Pattern Selection Agent
+
+The Vault Pattern Selection Agent consumes the discovery outputs:
+
+- `reports/vault-discovery-report.md`
+- `reports/vault-discovery-report.json`
+
+It produces:
+
+- `reports/vault-pattern-decision.md`
+
+This agent plays the role of a HashiCorp Vault architect. It ranks the best target pattern as rank 1 and the fallback or phased option as rank 2. It uses the `vault-pattern-recommendation` skill and does not rediscover the repository unless the discovery report is missing or incomplete.
+
+## Migration Plan Agent
+
+The Vault Migration Plan Agent consumes:
+
+- `reports/vault-discovery-report.md`
+- `reports/vault-discovery-report.json`
+- `reports/vault-pattern-decision.md`
+
+It produces:
+
+- `reports/vault-migration-plan.md`
+- `reports/vault-migration-plan.json`
+
+This agent converts discovery and pattern decisions into an implementation-ready migration plan. It defines secret mapping, code/config changes, infrastructure changes, CI/CD changes, implementation sequence, minimum tests, rollback, cutover, risk register, open questions, and readiness. It is still read-only and must not modify application files or expose secrets.
+
+## Implementation Agent
+
+The Vault Implementation Agent consumes all prior reports and either:
+
+- produces a dry-run implementation scope preview, or
+- applies approved scoped changes using pattern-specific skills.
+
+It produces:
+
+- `reports/vault-implementation-summary.md`
+- optional `reports/vault-implementation-summary.json`
+
+The agent uses one orchestrator with focused implementation skills. This avoids one giant implementation prompt while keeping coordination centralized.
+
+Pattern-specific skills include:
+
+- Vault Agent Injector implementation
+- Vault CSI implementation
+- Java Spring SDK implementation
+- AppRole implementation
+- Kubernetes Auth implementation
+- Dynamic Database Secret implementation
+- KV Static Secret implementation
+- Helm Vault implementation
+- CI/CD Vault implementation
+- Vault PKI Certificate implementation
+- Docker Vault Agent implementation
+- Terraform Vault Metadata implementation
+
+Implementation is approval-gated and must not add secret values.
+
+## Hooks And Scripts
+
+The workflow includes deterministic checks for:
+
+- agentic artifact order
+- required report sections
+- JSON output structure
+- secret redaction
+- implementation safety boundaries
+
+These checks complement the agent instructions. They provide repeatable gates that can run locally or in CI.
 
 ## Skill Contract
 

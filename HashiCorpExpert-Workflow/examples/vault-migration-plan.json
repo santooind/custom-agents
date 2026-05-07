@@ -1,0 +1,261 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-07T00:00:00Z",
+  "agent": {
+    "name": "Vault Migration Plan Agent",
+    "version": "1.0.0",
+    "mode": "read-only-planning"
+  },
+  "inputs_reviewed": [
+    {
+      "path": "reports/vault-discovery-report.md",
+      "status": "Reviewed",
+      "notes": "Discovery narrative reviewed."
+    },
+    {
+      "path": "reports/vault-discovery-report.json",
+      "status": "Reviewed",
+      "notes": "Structured findings and impact matrix reviewed."
+    },
+    {
+      "path": "reports/vault-pattern-decision.md",
+      "status": "Reviewed",
+      "notes": "Rank 1 pattern used as target pattern."
+    }
+  ],
+  "executive_summary": {
+    "summary": "Migrate configuration-backed application secrets to Vault-backed runtime injection while preserving existing application configuration keys where possible.",
+    "selected_pattern": "Kubernetes Auth + Vault Agent Injector + KV v2",
+    "expected_change_size": "Medium",
+    "risk_level": "Medium"
+  },
+  "selected_vault_pattern": {
+    "composed_pattern": "Kubernetes Auth + Vault Agent Injector + KV v2",
+    "delivery_pattern": "Vault Agent Injector",
+    "auth_method": "Kubernetes Auth",
+    "secret_engine": "KV v2, Dynamic Database Secrets optional in a later phase",
+    "why_selected": [
+      "Kubernetes deployment evidence exists.",
+      "Existing application configuration keys can likely be preserved through rendered templates.",
+      "Application source code changes appear avoidable for the initial migration."
+    ],
+    "rejected_alternatives": [
+      "SDK integration for initial migration",
+      "Direct Vault API integration for initial migration",
+      "Terraform-managed static secret payloads"
+    ],
+    "prerequisites": [
+      "Vault Kubernetes Auth enabled",
+      "Service account confirmed",
+      "Vault policy approved",
+      "Vault KV path standard confirmed"
+    ],
+    "confidence": 0.82
+  },
+  "migration_scope": {
+    "in_scope": [
+      "Application configuration secret migration",
+      "Kubernetes deployment integration with Vault Agent Injector",
+      "Vault policy and Kubernetes Auth role planning",
+      "CI/CD deployment validation",
+      "Rollback and minimum test plan"
+    ],
+    "out_of_scope": [
+      "Application source code modification until approved",
+      "Production secret value migration",
+      "Dynamic database credentials in the first phase unless explicitly approved"
+    ],
+    "assumptions": [
+      "Kubernetes is the runtime platform",
+      "Existing configuration keys can be preserved",
+      "Target Vault paths are proposed and require owner confirmation"
+    ],
+    "dependencies": [
+      "Vault platform team approval",
+      "Application owner validation",
+      "Kubernetes namespace and service account confirmation",
+      "CI/CD owner support"
+    ]
+  },
+  "secret_mapping_plan": [
+    {
+      "current_secret": "database password",
+      "current_location": "src/main/resources/application.yml",
+      "usage": "Datasource authentication",
+      "target_vault_path": "kv/<bu>/<app>/<env>/database",
+      "target_key": "password",
+      "owner": "Application and database owners",
+      "rotation_need": "High",
+      "notes": "Proposed path; value not included.",
+      "confidence": 0.8
+    },
+    {
+      "current_secret": "API key",
+      "current_location": "environment or Kubernetes Secret reference",
+      "usage": "External service authentication",
+      "target_vault_path": "kv/<bu>/<app>/<env>/external-api",
+      "target_key": "api_key",
+      "owner": "Application owner",
+      "rotation_need": "Medium",
+      "notes": "Preserve current env/config key name where possible.",
+      "confidence": 0.7
+    }
+  ],
+  "code_change_plan": [
+    {
+      "file_or_component": "src/main/resources/application.yml",
+      "current_pattern": "Spring configuration contains secret-like keys",
+      "required_change": "Preserve keys and source values from Vault Agent rendered config",
+      "complexity": "Medium",
+      "risk": "Medium",
+      "confidence": 0.85,
+      "owner": "Application team",
+      "notes": "No secret values included."
+    }
+  ],
+  "infrastructure_change_plan": [
+    {
+      "file_or_component": "deploy/app.yaml",
+      "current_pattern": "Kubernetes Secret reference",
+      "required_change": "Add Vault Agent Injector annotations and template configuration",
+      "complexity": "Medium",
+      "risk": "Medium",
+      "confidence": 0.82,
+      "owner": "Platform team",
+      "notes": "Validate service account and Vault role binding."
+    }
+  ],
+  "cicd_change_plan": [
+    {
+      "file_or_component": ".github/workflows/*",
+      "current_pattern": "Probable platform secret references",
+      "required_change": "Add deployment validation and remove obsolete secret references after cutover",
+      "complexity": "Medium",
+      "risk": "Medium",
+      "confidence": 0.6,
+      "owner": "CI/CD owner",
+      "notes": "Use OIDC/JWT if pipeline needs Vault access."
+    }
+  ],
+  "implementation_sequence": [
+    {
+      "step": 1,
+      "action": "Prepare Vault path and policy.",
+      "owner": "Vault platform team",
+      "dependencies": ["Vault path standard"],
+      "rollback_checkpoint": "No application impact."
+    },
+    {
+      "step": 2,
+      "action": "Configure Kubernetes Auth method and app role.",
+      "owner": "Vault and platform teams",
+      "dependencies": ["Namespace and service account"],
+      "rollback_checkpoint": "Remove or disable role mapping."
+    },
+    {
+      "step": 3,
+      "action": "Update deployment/config in lower environment.",
+      "owner": "Platform and application teams",
+      "dependencies": ["Vault policy and role ready"],
+      "rollback_checkpoint": "Revert manifest or Helm values."
+    }
+  ],
+  "minimum_test_plan": [
+    {
+      "test_area": "Config loading tests",
+      "scope": "Start application with Vault-rendered config present and missing.",
+      "success_criteria": "Application loads expected config when present and fails safely when missing.",
+      "owner": "Application team"
+    },
+    {
+      "test_area": "Rollback validation",
+      "scope": "Redeploy with previous secret source.",
+      "success_criteria": "Application recovers and passes smoke tests.",
+      "owner": "Release team"
+    }
+  ],
+  "rollback_plan": {
+    "steps": [
+      "Revert deployment manifest or Helm values to the previous secret source.",
+      "Keep prior Kubernetes Secret or external secret source available through the rollback window.",
+      "Disable Vault Agent Injector annotations for the workload.",
+      "Redeploy previous version or previous manifest."
+    ],
+    "verification": [
+      "Verify pod startup.",
+      "Verify health checks.",
+      "Verify DB connectivity.",
+      "Verify API smoke tests."
+    ]
+  },
+  "cutover_plan": {
+    "lower_environment_rollout": [
+      "Deploy Vault integration in dev/test first."
+    ],
+    "production_rollout": [
+      "Use controlled release window with rollback owner available."
+    ],
+    "monitoring": [
+      "Pod startup",
+      "Vault auth failures",
+      "Application errors",
+      "DB connectivity",
+      "Secret exposure in logs"
+    ],
+    "success_criteria": [
+      "Application starts",
+      "Runtime secret access succeeds",
+      "Smoke tests pass",
+      "Logs remain redacted"
+    ],
+    "failure_criteria": [
+      "Vault auth failure",
+      "Missing secret path",
+      "Startup failure",
+      "DB connection failure",
+      "Secret exposure in logs"
+    ],
+    "abort_criteria": [
+      "Missing production owner decision",
+      "Missing rollback source",
+      "Failed lower environment test"
+    ]
+  },
+  "risk_register": [
+    {
+      "risk": "Vault injection fails at startup",
+      "impact": "High",
+      "likelihood": "Medium",
+      "mitigation": "Validate service account, Vault role, path, and policy in lower environment.",
+      "owner": "Platform team"
+    }
+  ],
+  "open_questions": [
+    {
+      "question": "What is the approved Vault path standard?",
+      "why_it_matters": "Secret mapping cannot be finalized without path ownership.",
+      "suggested_owner": "Vault platform owner"
+    }
+  ],
+  "implementation_readiness": {
+    "classification": "Ready with assumptions",
+    "rationale": "The selected pattern and likely change areas are clear enough for lower-environment planning, but path ownership, service account binding, and dynamic database scope require confirmation.",
+    "required_to_be_ready": [
+      "Confirm target Vault path standard",
+      "Confirm namespace and service account",
+      "Confirm rollback window and owner",
+      "Confirm whether database dynamic secrets are in phase 1"
+    ]
+  },
+  "assumptions": [
+    "Kubernetes is the runtime platform.",
+    "Existing configuration keys can be preserved.",
+    "Target Vault paths are proposed and require owner confirmation."
+  ],
+  "safety": {
+    "secrets_redacted": true,
+    "source_code_modified": false,
+    "notes": "No secret values are included in this sample plan."
+  }
+}
+

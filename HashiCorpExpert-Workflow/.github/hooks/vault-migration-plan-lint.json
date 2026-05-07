@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "./scripts/vault-report-lint.sh reports/vault-migration-plan.md migration",
+        "timeout": 20
+      },
+      {
+        "type": "command",
+        "command": "./scripts/vault-json-schema-validate.sh reports/vault-migration-plan.json migration",
+        "timeout": 20
+      },
+      {
+        "type": "command",
+        "command": "./scripts/vault-secret-redaction-lint.sh reports",
+        "timeout": 20
+      }
+    ]
+  }
+}
+

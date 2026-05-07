@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "./scripts/vault-implementation-safety-check.sh .",
+        "timeout": 30
+      },
+      {
+        "type": "command",
+        "command": "./scripts/vault-report-lint.sh reports/vault-implementation-summary.md implementation",
+        "timeout": 20
+      },
+      {
+        "type": "command",
+        "command": "./scripts/vault-json-schema-validate.sh reports/vault-implementation-summary.json implementation",
+        "timeout": 20
+      }
+    ]
+  }
+}
+

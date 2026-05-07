@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "./scripts/vault-agentic-artifact-check.sh .",
+        "timeout": 20
+      }
+    ]
+  }
+}
+

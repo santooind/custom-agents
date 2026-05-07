@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hashicorp-expert.local/schemas/vault-implementation-summary.schema.json",
+  "title": "Vault Implementation Summary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "agent",
+    "mode",
+    "inputs_reviewed",
+    "approval_and_scope",
+    "selected_pattern",
+    "skills_applied",
+    "files_changed",
+    "files_intentionally_not_changed",
+    "secret_safety_controls",
+    "implementation_details",
+    "validation_performed",
+    "rollback_notes",
+    "residual_risks",
+    "open_questions",
+    "next_steps"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "agent": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "mode": { "type": "string", "enum": ["dry-run", "approved-implementation"] },
+    "inputs_reviewed": { "type": "array", "items": { "type": "string" } },
+    "approval_and_scope": {
+      "type": "object",
+      "required": ["approval_status", "approved_scope"],
+      "properties": {
+        "approval_status": { "type": "string", "enum": ["Not approved", "Approved"] },
+        "approved_scope": { "type": "array", "items": { "type": "string" } },
+        "scope_notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "selected_pattern": {
+      "type": "object",
+      "properties": {
+        "composed_pattern": { "type": "string" },
+        "delivery_pattern": { "type": "string" },
+        "auth_method": { "type": "string" },
+        "secret_engine": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "skills_applied": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["skill", "status"],
+        "properties": {
+          "skill": { "type": "string" },
+          "status": { "type": "string", "enum": ["Would run", "Applied", "Skipped", "Blocked"] },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "files_changed": { "type": "array", "items": { "$ref": "#/$defs/file_change" } },
+    "files_intentionally_not_changed": { "type": "array", "items": { "type": "string" } },
+    "secret_safety_controls": { "type": "array", "items": { "type": "string" } },
+    "implementation_details": { "type": "array", "items": { "type": "string" } },
+    "validation_performed": { "type": "array", "items": { "$ref": "#/$defs/validation" } },
+    "rollback_notes": { "type": "array", "items": { "type": "string" } },
+    "residual_risks": { "type": "array", "items": { "type": "string" } },
+    "open_questions": { "type": "array", "items": { "type": "string" } },
+    "next_steps": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "file_change": {
+      "type": "object",
+      "required": ["path", "change_type", "summary"],
+      "properties": {
+        "path": { "type": "string" },
+        "change_type": { "type": "string", "enum": ["Would change", "Created", "Updated", "Deleted", "Skipped"] },
+        "summary": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "validation": {
+      "type": "object",
+      "required": ["command_or_check", "status"],
+      "properties": {
+        "command_or_check": { "type": "string" },
+        "status": { "type": "string", "enum": ["Passed", "Failed", "Skipped", "Not available"] },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
+
