@@ -1,0 +1,19 @@
+{
+  "servers": {
+    "vault-readonly": {
+      "command": "node",
+      "args": ["./mcp/vault-mcp-server.js"],
+      "env": {
+        "VAULT_ADDR": "${input:VAULT_ADDR}",
+        "VAULT_AUTH_PROFILE": "readonly"
+      }
+    },
+    "repo-discovery": {
+      "command": "node",
+      "args": ["./mcp/repo-discovery-mcp-server.js"],
+      "env": {
+        "DISCOVERY_MODE": "metadata-only"
+      }
+    }
+  }
+}

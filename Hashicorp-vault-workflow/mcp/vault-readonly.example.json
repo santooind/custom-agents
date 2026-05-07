@@ -1,0 +1,13 @@
+{
+  "servers": {
+    "vault-readonly": {
+      "command": "node",
+      "args": ["./mcp/vault-mcp-server.js"],
+      "env": {
+        "VAULT_ADDR": "${input:VAULT_ADDR}",
+        "VAULT_NAMESPACE": "${input:VAULT_NAMESPACE}",
+        "VAULT_AUTH_PROFILE": "readonly"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "repo-discovery": {
+      "command": "node",
+      "args": ["./mcp/repo-discovery-mcp-server.js"],
+      "env": {
+        "DISCOVERY_MODE": "metadata-only",
+        "REDACT_SECRET_VALUES": "true"
+      }
+    }
+  }
+}

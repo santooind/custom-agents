@@ -1,0 +1,23 @@
+{
+  "name": "servicenow-readonly",
+  "purpose": "Read ServiceNow metadata needed for architecture analysis.",
+  "recommended_capabilities": [
+    "read_catalog_items",
+    "read_flows",
+    "read_connection_aliases",
+    "read_credential_alias_metadata",
+    "read_cmdb_classes",
+    "read_integration_logs_metadata"
+  ],
+  "blocked_capabilities": [
+    "read_secret_payloads",
+    "write_work_notes_with_secrets",
+    "update_credentials",
+    "execute_fulfillment"
+  ],
+  "security_notes": [
+    "Use least privilege ServiceNow roles.",
+    "Do not return credential values.",
+    "Mask catalog variables that may contain sensitive data."
+  ]
+}

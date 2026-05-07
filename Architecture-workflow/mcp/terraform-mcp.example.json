@@ -1,0 +1,23 @@
+{
+  "name": "terraform-docs",
+  "purpose": "Read Terraform architecture metadata, module docs, provider docs, and workspace structure.",
+  "recommended_capabilities": [
+    "read_module_docs",
+    "read_provider_versions",
+    "read_workspace_metadata",
+    "read_backend_configuration",
+    "read_policy_results"
+  ],
+  "blocked_capabilities": [
+    "read_state_values",
+    "read_sensitive_outputs",
+    "apply_changes",
+    "upload_plan",
+    "run_destroy"
+  ],
+  "security_notes": [
+    "Do not expose state payloads to architecture agents.",
+    "Do not read secret-valued outputs.",
+    "Use metadata-only access unless explicitly approved."
+  ]
+}

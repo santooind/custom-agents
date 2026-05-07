@@ -1,0 +1,27 @@
+{
+  "servers": {
+    "servicenow-readonly": {
+      "command": "node",
+      "args": ["./mcp/servicenow-mcp-server.js"],
+      "env": {
+        "SERVICENOW_INSTANCE_URL": "${input:SERVICENOW_INSTANCE_URL}",
+        "SERVICENOW_AUTH_PROFILE": "readonly"
+      }
+    },
+    "vault-readonly": {
+      "command": "node",
+      "args": ["./mcp/vault-mcp-server.js"],
+      "env": {
+        "VAULT_ADDR": "${input:VAULT_ADDR}",
+        "VAULT_AUTH_PROFILE": "readonly"
+      }
+    },
+    "terraform-docs": {
+      "command": "node",
+      "args": ["./mcp/terraform-mcp-server.js"],
+      "env": {
+        "TERRAFORM_DOCS_MODE": "readonly"
+      }
+    }
+  }
+}

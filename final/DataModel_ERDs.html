@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vault Self-Service Portal — Entity Relationship Diagrams (v5.1)</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --heading: #f0f6fc;
+      --accent: #58a6ff;
+      --green: #3fb950;
+      --orange: #d29922;
+      --red: #f85149;
+      --muted: #8b949e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 {
+      color: var(--heading);
+      font-size: 2rem;
+      margin-bottom: .5rem;
+    }
+    header .meta {
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    header .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-left: .5rem;
+    }
+    .badge-approved { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.4); }
+    .badge-legacy  { background: rgba(210,153,34,.15); color: var(--orange); border: 1px solid rgba(210,153,34,.4); }
+
+    .toc {
+      max-width: 700px;
+      margin: 0 auto 3rem;
+      background: var(--surface);
+      padding: 1.5rem 2rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .toc h2 { color: var(--heading); font-size: 1.1rem; margin-bottom: .75rem; }
+    .toc ol { padding-left: 1.5rem; }
+    .toc li { margin-bottom: .4rem; }
+    .toc a { color: var(--accent); text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+
+    section {
+      max-width: 1200px;
+      margin: 0 auto 4rem;
+    }
+    section h2 {
+      color: var(--heading);
+      font-size: 1.5rem;
+      margin-bottom: .25rem;
+    }
+    section .subtitle {
+      color: var(--muted);
+      font-size: .9rem;
+      margin-bottom: 1.5rem;
+    }
+    .description {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      font-size: .9rem;
+    }
+    .description ul { padding-left: 1.25rem; margin-top: .5rem; }
+    .description li { margin-bottom: .25rem; }
+    .description strong { color: var(--heading); }
+
+    .diagram-container {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 2rem 1rem;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    .legend {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+      font-size: .8rem;
+      color: var(--muted);
+    }
+    .legend-item { display: flex; align-items: center; gap: .4rem; }
+    .legend-swatch {
+      width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--border);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: .85rem;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: .6rem 1rem;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    .comparison-table th {
+      background: var(--surface);
+      color: var(--heading);
+      font-weight: 600;
+    }
+    .comparison-table td { color: var(--text); }
+    .removed { color: var(--red); text-decoration: line-through; }
+    .kept { color: var(--green); }
+
+    footer {
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 1rem; }
+      section { margin-bottom: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Entity Relationship Diagrams</h1>
+  <p style="color: var(--heading); font-size: 1.1rem; margin-bottom: .5rem;">HashiCorp Vault Self-Service Portal — ServiceNow Data Model</p>
+  <p class="meta">
+    Version 5.1 <span class="badge badge-approved">Approved</span> &nbsp;|&nbsp; 1 April 2026 &nbsp;|&nbsp; Executive Architect Review
+  </p>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#erd1">ERD 1 — Original Custom-Heavy Model (v3.2, 10 tables)</a></li>
+    <li><a href="#erd2">ERD 2 — Final Lean Custom Model (v5.1, 6 tables)</a></li>
+    <li><a href="#erd3">ERD 3 — Comprehensive Architecture (Custom + Native Tables)</a></li>
+    <li><a href="#erd4">ERD 4 — Integration Flow Diagram (SNOW ↔ Terraform ↔ Vault)</a></li>
+    <li><a href="#evolution">Model Evolution Summary</a></li>
+  </ol>
+</nav>
+
+<!-- ───────────────────────────────────────────── ERD 1 ───────────────────────────────────────────── -->
+<section id="erd1">
+  <h2>ERD 1 — Original Custom-Heavy Model <span class="badge badge-legacy">v3.2 Legacy</span></h2>
+  <p class="subtitle">10 custom tables · Initial design · Superseded</p>
+
+  <div class="description">
+    <p>The original v3.2 design created <strong>10 custom tables</strong>, including custom request tables that duplicated native <code>sc_req_item</code> functionality. This diagram is retained for historical reference to show the complexity that was eliminated.</p>
+    <ul>
+      <li><strong class="removed">vault_application + vault_sub_application</strong> → consolidated into <code>vault_scope</code></li>
+      <li><strong class="removed">vault_onboarding_request</strong> → replaced by native <code>sc_req_item</code></li>
+      <li><strong class="removed">vault_dynamic_access_request</strong> → replaced by native <code>sc_req_item</code></li>
+      <li><strong class="removed">vault_transaction_log</strong> → replaced by native IntegrationHub logs</li>
+    </ul>
+  </div>
+
+  <div class="diagram-container">
+    <pre class="mermaid">
+erDiagram
+    x_att2_vault_application {
+        string u_number PK
+        reference u_itap_reference FK "iTap Application"
+        string u_onboarding_status
+        string u_terraform_workspace_id
+    }
+
+    x_att2_vault_sub_application {
+        string u_number PK
+        reference u_parent_application FK "vault_application"
+        string u_sub_app_name
+        string u_environment
+        string u_onboarding_status
+        string u_terraform_workspace_id
+    }
+
+    x_att2_vault_onboarding_request {
+        string number PK "Extends sc_req_item"
+        reference u_application FK "vault_application"
+        reference u_sub_application FK "vault_sub_application"
+        string u_environment
+        string u_status
+    }
+
+    x_att2_vault_secret_metadata {
+        string u_number PK
+        reference u_application FK "vault_application"
+        reference u_sub_application FK "vault_sub_application"
+        string u_secret_name
+        string u_status
+    }
+
+    x_att2_vault_database_registry {
+        string u_number PK
+        reference u_cmdb_ci FK "cmdb_ci_db_instance"
+        reference u_owner_application FK "vault_application"
+        reference u_dba_assignment_group FK "sys_user_group"
+    }
+
+    x_att2_vault_dynamic_access_request {
+        string number PK "Extends sc_req_item"
+        reference u_application FK "vault_application"
+        reference u_sub_application FK "vault_sub_application"
+        reference u_target_database FK "vault_database_registry"
+        string u_status
+    }
+
+    x_att2_vault_dynamic_access {
+        string u_number PK
+        reference u_application FK "vault_application"
+        reference u_sub_application FK "vault_sub_application"
+        reference u_database FK "vault_database_registry"
+        reference u_source_request FK "vault_dynamic_access_request"
+        string u_status
+    }
+
+    x_att2_vault_audit_event {
+        string u_number PK
+        reference u_application FK "vault_application"
+        string u_event_type
+    }
+
+    x_att2_vault_transaction_log {
+        string u_number PK
+        string u_correlation_id
+        reference u_application FK "vault_application"
+    }
+
+    x_att2_vault_application ||--o{ x_att2_vault_sub_application : "has"
+    x_att2_vault_application ||--o{ x_att2_vault_onboarding_request : "is subject of"
+    x_att2_vault_application ||--o{ x_att2_vault_secret_metadata : "owns"
+    x_att2_vault_application ||--o{ x_att2_vault_database_registry : "is owner of"
+    x_att2_vault_application ||--o{ x_att2_vault_dynamic_access_request : "requests for"
+    x_att2_vault_application ||--o{ x_att2_vault_dynamic_access : "is granted to"
+    x_att2_vault_sub_application ||--o{ x_att2_vault_onboarding_request : "is subject of"
+    x_att2_vault_sub_application ||--o{ x_att2_vault_secret_metadata : "owns"
+    x_att2_vault_sub_application ||--o{ x_att2_vault_dynamic_access_request : "requests for"
+    x_att2_vault_sub_application ||--o{ x_att2_vault_dynamic_access : "is granted to"
+    x_att2_vault_database_registry ||--o{ x_att2_vault_dynamic_access_request : "is target of"
+    x_att2_vault_database_registry ||--o{ x_att2_vault_dynamic_access : "is target of"
+    x_att2_vault_dynamic_access_request ||--o{ x_att2_vault_dynamic_access : "provisions"
+    </pre>
+  </div>
+</section>
+
+<!-- ───────────────────────────────────────────── ERD 2 ───────────────────────────────────────────── -->
+<section id="erd2">
+  <h2>ERD 2 — Final Lean Custom Model <span class="badge badge-approved">v5.1 Final</span></h2>
+  <p class="subtitle">6 custom tables · Native-first architecture · All fields shown</p>
+
+  <div class="description">
+    <p>The approved v5.1 data model uses <strong>6 purpose-built custom tables</strong>. This ERD shows all columns per table, reflecting the executive review corrections (DM-1 through DM-4).</p>
+  </div>
+
+  <div class="diagram-container">
+    <pre class="mermaid">
+erDiagram
+    x_att2_vault_scope {
+        string u_number PK "Auto: VSCP"
+        reference u_itap_application FK "iTap Application"
+        boolean u_is_sub_application
+        string u_sub_app_name
+        string u_normalized_name "Lowercase system key"
+        string u_terraform_workspace_id
+        reference u_created_by FK "sys_user"
+        datetime u_created_on
+        boolean active
+    }
+
+    x_att2_vault_scope_environment {
+        string sys_id PK
+        reference u_scope FK "vault_scope"
+        choice u_environment "DEV TEST PROD"
+        choice u_onboarding_status "NOT_ONBOARDED IN_PROGRESS ONBOARDED FAILED"
+        string u_vault_role_name "role-env-mots[-sub]"
+        string u_vault_path "secret/data/org/env/mots[/sub]"
+        reference u_last_onboarding_ritm FK "sc_req_item"
+        boolean active
+    }
+
+    x_att2_vault_database_registry {
+        string u_number PK "Auto: VDB"
+        reference u_cmdb_ci FK "cmdb_ci_db_instance"
+        choice u_environment "DEV TEST PROD"
+        reference u_dba_assignment_group FK "sys_user_group"
+        string u_vault_mount_path "default: database/"
+        string u_vault_connection_name
+        boolean u_supported
+        boolean active
+    }
+
+    x_att2_vault_dynamic_access {
+        string u_number PK "Auto: VDA"
+        reference u_scope_environment FK "vault_scope_environment"
+        reference u_database_registry FK "vault_database_registry"
+        choice u_permission_level "READ_ONLY READ_WRITE"
+        string u_vault_role_name
+        string u_vault_path
+        reference u_source_ritm FK "sc_req_item"
+        choice u_status "ACTIVE DISABLING DISABLED"
+        reference u_disabled_by FK "sys_user"
+        datetime u_disabled_on
+        boolean active
+    }
+
+    x_att2_vault_secret_metadata {
+        string u_number PK "Auto: VSEC"
+        reference u_scope_environment FK "vault_scope_environment"
+        string u_secret_name "regex: a-z0-9._-"
+        string u_vault_path "Full KV v2 path"
+        string u_description
+        string u_labels "Comma-separated tags"
+        integer u_latest_version
+        choice u_status "ACTIVE DELETED"
+        reference u_created_by FK "sys_user"
+        datetime u_created_on
+        reference u_last_rotated_by FK "sys_user"
+        datetime u_last_rotated_on
+        reference u_deleted_by FK "sys_user"
+        datetime u_deleted_on
+    }
+
+    x_att2_vault_audit_event {
+        string u_number PK "Auto: VAUD"
+        reference u_scope_environment FK "vault_scope_environment"
+        choice u_event_type "15 event types"
+        choice u_resource_type "ONBOARDING STATIC_SECRET DYNAMIC_ACCESS APPROLE"
+        string u_resource_name
+        reference u_action_by FK "sys_user"
+        datetime u_timestamp
+        string u_reason
+        string u_correlation_id
+        string u_source_record "table:sys_id"
+        integer u_version "KV version"
+        string u_ip_address "Client IP"
+    }
+
+    x_att2_vault_scope ||--o{ x_att2_vault_scope_environment : "has environments"
+    x_att2_vault_scope_environment ||--o{ x_att2_vault_dynamic_access : "can be granted"
+    x_att2_vault_scope_environment ||--o{ x_att2_vault_secret_metadata : "owns secrets"
+    x_att2_vault_scope_environment ||--o{ x_att2_vault_audit_event : "logs events"
+    x_att2_vault_database_registry ||--o{ x_att2_vault_dynamic_access : "is target of"
+    </pre>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:#c9ccd1"></div> PK = Primary Key</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#a5d6ff"></div> FK = Foreign Key Reference</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#ffd8a8"></div> Choice = ServiceNow Choice Field</div>
+  </div>
+</section>
+
+<!-- ───────────────────────────────────────────── ERD 3 ───────────────────────────────────────────── -->
+<section id="erd3">
+  <h2>ERD 3 — Comprehensive Architecture <span class="badge badge-approved">v5.1 Final</span></h2>
+  <p class="subtitle">6 custom tables + native ServiceNow tables · Full production view</p>
+
+  <div class="description">
+    <p>The complete architectural view showing how the 6 custom tables interact with <strong>native ServiceNow platform tables</strong> — <code>sc_req_item</code> (with 7 custom fields), <code>sysapproval_approver</code>, <code>cmdb_ci_db_instance</code>, and the iTap application registry.</p>
+  </div>
+
+  <div class="diagram-container">
+    <pre class="mermaid">
+erDiagram
+    iTap_Application {
+        string name PK
+        string u_mots_id
+        reference u_app_owner FK "sys_user"
+        reference u_security_analyst FK "sys_user"
+        reference u_alternate_owner FK "sys_user"
+        string u_organization
+    }
+
+    cmdb_ci_db_instance {
+        string name PK
+        string host_name
+        string type
+        integer tcp_port
+    }
+
+    sc_req_item {
+        string number PK
+        string state
+        string approval
+        reference u_x_att2_vault_scope FK "vault_scope"
+        reference u_x_att2_scope_environment FK "vault_scope_environment"
+        reference u_x_att2_database_registry FK "vault_database_registry"
+        choice u_x_att2_execution_status "QUEUED PROCESSING COMPLETED FAILED"
+        string u_x_att2_correlation_id
+        string u_x_att2_terraform_run_id
+        string u_x_att2_error_summary
+    }
+
+    sysapproval_approver {
+        string sys_id PK
+        reference sysapproval FK "sc_req_item"
+        reference approver FK "sys_user_group"
+        string state "requested approved rejected"
+    }
+
+    x_att2_vault_scope {
+        string u_number PK "VSCP"
+        reference u_itap_application FK "iTap_Application"
+        boolean u_is_sub_application
+        string u_normalized_name
+        string u_terraform_workspace_id
+        reference u_created_by FK "sys_user"
+    }
+
+    x_att2_vault_scope_environment {
+        string sys_id PK
+        reference u_scope FK "vault_scope"
+        choice u_environment "DEV TEST PROD"
+        choice u_onboarding_status "NOT_ONBOARDED ONBOARDED IN_PROGRESS FAILED"
+        string u_vault_role_name
+        string u_vault_path
+        reference u_last_onboarding_ritm FK "sc_req_item"
+    }
+
+    x_att2_vault_database_registry {
+        string u_number PK "VDB"
+        reference u_cmdb_ci FK "cmdb_ci_db_instance"
+        choice u_environment "DEV TEST PROD"
+        reference u_dba_assignment_group FK "sys_user_group"
+        string u_vault_mount_path
+        string u_vault_connection_name
+        boolean u_supported
+    }
+
+    x_att2_vault_dynamic_access {
+        string u_number PK "VDA"
+        reference u_scope_environment FK "vault_scope_environment"
+        reference u_database_registry FK "vault_database_registry"
+        choice u_permission_level "READ_ONLY READ_WRITE"
+        string u_vault_role_name
+        reference u_source_ritm FK "sc_req_item"
+        choice u_status "ACTIVE DISABLING DISABLED"
+    }
+
+    x_att2_vault_secret_metadata {
+        string u_number PK "VSEC"
+        reference u_scope_environment FK "vault_scope_environment"
+        string u_secret_name
+        string u_vault_path
+        string u_description
+        integer u_latest_version
+        choice u_status "ACTIVE DELETED"
+    }
+
+    x_att2_vault_audit_event {
+        string u_number PK "VAUD"
+        reference u_scope_environment FK "vault_scope_environment"
+        choice u_event_type "15 types"
+        choice u_resource_type "4 types"
+        reference u_action_by FK "sys_user"
+        string u_correlation_id
+        datetime u_timestamp
+    }
+
+    iTap_Application ||--|{ x_att2_vault_scope : "is referenced by"
+    cmdb_ci_db_instance ||--|{ x_att2_vault_database_registry : "is referenced by"
+
+    x_att2_vault_scope ||--o{ x_att2_vault_scope_environment : "has environments"
+    x_att2_vault_scope ||--o{ sc_req_item : "is requested for"
+
+    x_att2_vault_scope_environment ||--o{ x_att2_vault_dynamic_access : "can be granted"
+    x_att2_vault_scope_environment ||--o{ sc_req_item : "is onboarded via"
+    x_att2_vault_scope_environment ||--o{ x_att2_vault_secret_metadata : "owns secrets"
+    x_att2_vault_scope_environment ||--o{ x_att2_vault_audit_event : "logs events"
+
+    x_att2_vault_database_registry ||--o{ x_att2_vault_dynamic_access : "is target of"
+    x_att2_vault_database_registry ||--o{ sc_req_item : "is requested for"
+
+    sc_req_item ||--o| sysapproval_approver : "has approval"
+    sc_req_item ||--o{ x_att2_vault_dynamic_access : "provisions"
+    </pre>
+  </div>
+</section>
+
+<!-- ───────────────────────────────────────────── ERD 4 ───────────────────────────────────────────── -->
+<section id="erd4">
+  <h2>ERD 4 — Integration Flow Diagram <span class="badge badge-approved">v1.1</span></h2>
+  <p class="subtitle">ServiceNow ↔ Terraform ↔ Vault · Dual integration paths</p>
+
+  <div class="description">
+    <p>This diagram illustrates the two distinct integration paths:</p>
+    <ul>
+      <li><strong>Path A (Async):</strong> ServiceNow → Terraform Cloud → Vault (for Onboarding &amp; Dynamic Access provisioning)</li>
+      <li><strong>Path B (Sync):</strong> ServiceNow → Vault KV v2 API directly (for Static Secret CRUD — Epic 2)</li>
+    </ul>
+    <p>The Terraform path uses <strong>callbacks</strong> (webhooks) with a <strong>polling fallback</strong>. The Vault direct path is synchronous with immediate response.</p>
+  </div>
+
+  <div class="diagram-container">
+    <pre class="mermaid">
+flowchart TB
+    subgraph SNOW["ServiceNow Platform"]
+        direction TB
+        CAT["Service Catalog\n& Portal"] --> RITM["sc_req_item\n+ 7 custom fields"]
+        CAT --> PORTAL["Static Secrets\nPortal Page"]
+        RITM --> FLOW["Flow Designer\n+ IntegrationHub"]
+        RITM --> APPROVAL["sysapproval_approver\n(DBA Approval)"]
+        APPROVAL -->|approved| FLOW
+        PORTAL --> VAULTREST["RESTMessageV2\n(Direct Vault Call)"]
+
+        FLOW -->|"Creates/Updates"| SCOPE_ENV["vault_scope_environment"]
+        FLOW -->|"Creates"| DYN_ACCESS["vault_dynamic_access"]
+        VAULTREST -->|"Creates/Updates"| SEC_META["vault_secret_metadata"]
+        FLOW -->|"Writes"| AUDIT["vault_audit_event"]
+        VAULTREST -->|"Writes"| AUDIT
+    end
+
+    subgraph TFC["Terraform Cloud / Enterprise"]
+        direction TB
+        API["TFC API\n/api/v2/runs"] --> WORKSPACE["Terraform Workspace\n(1 per vault_scope)"]
+        WORKSPACE --> APPLY["terraform apply\n(vault provider)"]
+    end
+
+    subgraph VAULT["HashiCorp Vault"]
+        direction TB
+        POLICY["Policies\npol-env-mots"]
+        APPROLE["AppRoles\nrole-env-mots"]
+        KV["KV v2 Engine\nsecret/data/..."]
+        DB["Database Engine\ndatabase/creds/..."]
+    end
+
+    FLOW -->|"POST /api/v2/runs\n+ correlation_id"| API
+    API -.->|"Callback webhook\n+ correlation_id + status"| FLOW
+
+    APPLY --> POLICY
+    APPLY --> APPROLE
+    APPLY --> DB
+
+    VAULTREST -->|"PUT/DELETE\nsecret/data/..."| KV
+
+    style SNOW fill:#d4edda,stroke:#28a745,color:#000
+    style TFC fill:#fff3cd,stroke:#ffc107,color:#000
+    style VAULT fill:#fce5cd,stroke:#fd7e14,color:#000
+    </pre>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────── Evolution Summary ─────────────────────────────────── -->
+<section id="evolution">
+  <h2>Model Evolution Summary</h2>
+  <p class="subtitle">v3.2 (10 tables) → v4.0 (5 tables) → v5.0 (6 tables) → v5.1 (6 tables, field-complete)</p>
+
+  <table class="comparison-table">
+    <thead>
+      <tr>
+        <th>v3.2 Table</th>
+        <th>v5.1 Equivalent</th>
+        <th>Action</th>
+        <th>Rationale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>vault_application</code></td>
+        <td rowspan="2"><code class="kept">vault_scope</code></td>
+        <td rowspan="2">Consolidated</td>
+        <td rowspan="2">Single table with <code>u_is_sub_application</code> boolean eliminates join + reduces hierarchy</td>
+      </tr>
+      <tr>
+        <td><code>vault_sub_application</code></td>
+      </tr>
+      <tr>
+        <td><code class="removed">vault_onboarding_request</code></td>
+        <td>Native <code>sc_req_item</code> + 7 fields</td>
+        <td>Eliminated</td>
+        <td>Native RITM gives approvals, SLAs, portal widgets, activity streams for free</td>
+      </tr>
+      <tr>
+        <td><code class="removed">vault_dynamic_access_request</code></td>
+        <td>Native <code>sc_req_item</code> + 7 fields</td>
+        <td>Eliminated</td>
+        <td>Same as above — one RITM table serves both catalog items</td>
+      </tr>
+      <tr>
+        <td><code class="removed">vault_transaction_log</code></td>
+        <td>IntegrationHub native logs</td>
+        <td>Eliminated</td>
+        <td>HTTP execution tracing is a platform capability, not a custom concern</td>
+      </tr>
+      <tr>
+        <td><code>vault_scope_environment</code></td>
+        <td><code class="kept">vault_scope_environment</code></td>
+        <td>Retained</td>
+        <td>No native equivalent for per-environment onboarding status tracking</td>
+      </tr>
+      <tr>
+        <td><code>vault_database_registry</code></td>
+        <td><code class="kept">vault_database_registry</code></td>
+        <td>Retained (slimmed)</td>
+        <td>Removed <code>u_owner_application</code> — ownership context comes from requesting scope</td>
+      </tr>
+      <tr>
+        <td><code>vault_dynamic_access</code></td>
+        <td><code class="kept">vault_dynamic_access</code></td>
+        <td>Retained</td>
+        <td>Essential governance record: what access is ACTIVE or DISABLED</td>
+      </tr>
+      <tr>
+        <td><code>vault_secret_metadata</code></td>
+        <td><code class="kept">vault_secret_metadata</code></td>
+        <td>Retained + corrected</td>
+        <td>v5.1 restored 6 missing fields (description, labels, rotation/deletion tracking)</td>
+      </tr>
+      <tr>
+        <td><code>vault_audit_event</code></td>
+        <td><code class="kept">vault_audit_event</code></td>
+        <td>Retained + corrected</td>
+        <td>v5.1 restored 5 missing fields (resource_type, version, ip_address, timestamp, source_record) + Event Types list</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <p>Vault Self-Service Portal — Data Model ERDs v5.1 — Executive Architect Approved — 1 April 2026</p>
+  <p style="margin-top: .5rem;">Open this file in any browser to view rendered diagrams. Mermaid.js loads automatically.</p>
+</footer>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    er: { useMaxWidth: true, layoutDirection: 'TB' },
+    flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+    securityLevel: 'loose'
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "vault-readonly",
+  "purpose": "Read Vault architecture metadata without exposing secret payloads.",
+  "recommended_capabilities": [
+    "list_mounts",
+    "list_auth_methods",
+    "read_policy_metadata",
+    "list_namespaces",
+    "read_audit_device_config",
+    "list_kv_paths_metadata_only"
+  ],
+  "blocked_capabilities": [
+    "read_kv_secret_payload",
+    "write_kv_secret_payload",
+    "read_root_token",
+    "create_unbounded_policy"
+  ],
+  "security_notes": [
+    "Do not expose static secret values through MCP.",
+    "Use short-lived Vault tokens.",
+    "Prefer metadata-only reads for architecture work."
+  ]
+}
